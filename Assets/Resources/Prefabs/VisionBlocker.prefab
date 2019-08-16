@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 454028478664045030}
   m_Layer: 0
   m_Name: VisionBlocker
-  m_TagString: Untagged
+  m_TagString: VisionWall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

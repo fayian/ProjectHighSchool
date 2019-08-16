@@ -8,6 +8,7 @@ internal class PlayerStats : MonoBehaviour {
     public float maxMana = 100.0f;
     public float currentMana = 100.0f;
     public float maxStamina = 100.0f;
+    public float currentStamina = 100.0f;
 
     public float speed = 0.5f;
     public float dodgeRate = 0.05f;

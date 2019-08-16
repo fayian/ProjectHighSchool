@@ -15,24 +15,23 @@ public class LevelGenerator : MonoBehaviour {
     private GameObject[] prefabs = new GameObject[3];
 
     private void Create(ObjectData objDat, GameObject parent) {
+        objDat.pos += new Vector2(1.0f, 1.0f); //offset because of the walls
+
         GameObject obj = null;
         SpriteRenderer sr = null;
         switch (objDat.objID) {
             case 0:
-                obj = Instantiate(prefabs[1]);
-                sr = obj.GetComponent<SpriteRenderer>();
-                sr.sprite = levelData.wall;
-            break;
+                obj = CreateWall(objDat.pos, parent);
+            return; //already using CreateWall function to finish other stuff
             case 1:
-                obj = Instantiate(prefabs[1]);
-                sr = obj.GetComponent<SpriteRenderer>();
-                sr.sprite = levelData.smallObstacle;
-            break;
+                obj = CreateWall(objDat.pos, parent);
+                obj.GetComponent<SpriteRenderer>().sprite = levelData.smallObstacle;
+            return; //already using CreateWall function to finish other stuff
             case 2:
                 obj = Instantiate(prefabs[0]);
                 sr = obj.GetComponent<SpriteRenderer>();
-                sr.sprite = levelData.largeObstacle;
-            break;
+                sr.sprite = levelData.largeObstacle;                
+                break;
             case 3: obj = Instantiate(prefabs[2]);
                 sr = obj.GetComponent<SpriteRenderer>();
                 sr.sprite = levelData.visionBlocker;                
@@ -40,19 +39,28 @@ public class LevelGenerator : MonoBehaviour {
         }
 
         obj.transform.parent = parent.transform;
-        obj.transform.localPosition = new Vector3(objDat.pos.x + 1, objDat.pos.y + 1);
+        obj.transform.localPosition = new Vector3(objDat.pos.x, objDat.pos.y);
         sr.sortingOrder = -(int)(obj.transform.localPosition.y + parent.transform.localPosition.y); //upper objects should be drawn later        
+        if(objDat.objID == 2) { //set the levelMapForMob of big obstacles
+            int x = (int)obj.transform.position.x; int y = (int)obj.transform.position.y;
+            Global.levelMapForMob[x][y] = true;
+            Global.levelMapForMob[x + 1][y] = true;
+            Global.levelMapForMob[x][y + 1] = true;
+            Global.levelMapForMob[x + 1][y + 1] = true;
+        }
         if (objDat.objID == 3) sr.sortingOrder *= -1; //vision blockers are in floor layer, sor they need a higher order
     }
     private GameObject CreateWall(Vector2 pos, GameObject parent) {
         GameObject wall = Instantiate(prefabs[1]);
-
+        //transform
         wall.transform.parent = parent.transform;
         wall.transform.localPosition = new Vector2(pos.x, pos.y);
-
+        //set up sprite renderer
         SpriteRenderer sr = wall.GetComponent<SpriteRenderer>();
         sr.sortingOrder = -(int)wall.transform.position.y; //upper objects should be drawn later
         sr.sprite = levelData.wall;
+        //add the wall to the levelMapForMob
+        Global.levelMapForMob[(int)(wall.transform.position.x)][(int)(wall.transform.position.y)] = true;
 
         return wall;
     }
@@ -92,7 +100,7 @@ public class LevelGenerator : MonoBehaviour {
         floor.transform.parent = parent.transform;
         floor.transform.localPosition = pos;        
         sr.sprite = floorSprite;
-        sr.sortingLayerName = "Floor";        
+        sr.sortingLayerName = "Floor";
     }
     private void GenerateRoom(Vector2 pos, GameObject parent) {
         GameObject room = new GameObject("Room");
@@ -116,21 +124,31 @@ public class LevelGenerator : MonoBehaviour {
     }
 
     void Start() {
+        //Initialize
         prefabs[0] = Resources.Load("Prefabs/LargeObstacle") as GameObject;
         prefabs[1] = Resources.Load("Prefabs/SmallObstacle") as GameObject;
         prefabs[2] = Resources.Load("Prefabs/VisionBlocker") as GameObject;
 
+        Global.levelMapForMob.Clear();
+        Global.levelMapForMob.Capacity = ROOM_COUNT * ROOM_SIZE;
+        for (int i = 0; i < ROOM_COUNT * ROOM_SIZE; i++) {
+            List<bool> temp = new List<bool>(ROOM_COUNT * ROOM_SIZE);
+            for (int j = 0; j < ROOM_COUNT * ROOM_SIZE; j++) {
+                temp.Add(false);
+            }
+            Global.levelMapForMob.Add(temp);
+        }
+        //Create level
         GameObject level = new GameObject("Level");
         GameObject wallGrid = new GameObject("Wall Grid");
         level.transform.position = LEVEL_POS;
-        wallGrid.transform.parent = level.transform;        
+        wallGrid.transform.parent = level.transform;
 
         CreateWalls(wallGrid);
 
-        for (int i = 0; i < ROOM_COUNT; i++) 
+        for (int i = 0; i < ROOM_COUNT; i++)
             for (int j = 0; j < ROOM_COUNT; j++)
                 GenerateRoom(new Vector2(i * (ROOM_SIZE - 1), j * (ROOM_SIZE - 1)), level);
-
     }
     private struct ObjectData {
         public Vector2 pos;
