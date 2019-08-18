@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-internal class EnemyStats : MonoBehaviour {
+public class Stats : MonoBehaviour {
     public float maxHealth;
     public float currentHealth;
-    public float damage;
-
     public float speed;
+    public virtual void DealDamage(float damage) {
+        currentHealth -= damage;
+    }
 }

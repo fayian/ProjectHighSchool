@@ -133,11 +133,11 @@ public class EnemyController : MonoBehaviour {
         if (path.Count > 0) {
             if (Vector2.Distance(transform.position, path.Peek() + new Vector2(0.5f, 0.5f)) > Mathf.Epsilon) {
                 transform.position = Vector2.MoveTowards(transform.position, path.Peek() + new Vector2(0.5f, 0.5f), gameObject.GetComponent<EnemyStats>().speed);
-                //+(0.5, 0.5) to set the tile center from bottom left to center
+                //+(0.5, 0.5) to set the tile center from bottom left to center                
             } else {
                 path.Pop();
             }
+            transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.y);
         }
-        return;
     }
 }

@@ -18,7 +18,6 @@ public class LevelGenerator : MonoBehaviour {
         objDat.pos += new Vector2(1.0f, 1.0f); //offset because of the walls
 
         GameObject obj = null;
-        SpriteRenderer sr = null;
         switch (objDat.objID) {
             case 0:
                 obj = CreateWall(objDat.pos, parent);
@@ -29,36 +28,33 @@ public class LevelGenerator : MonoBehaviour {
             return; //already using CreateWall function to finish other stuff
             case 2:
                 obj = Instantiate(prefabs[0]);
-                sr = obj.GetComponent<SpriteRenderer>();
-                sr.sprite = levelData.largeObstacle;                
+                obj.GetComponent<SpriteRenderer>().sprite = levelData.largeObstacle;                
                 break;
             case 3: obj = Instantiate(prefabs[2]);
-                sr = obj.GetComponent<SpriteRenderer>();
-                sr.sprite = levelData.visionBlocker;                
+                obj.GetComponent<SpriteRenderer>().sprite = levelData.visionBlocker;                
             break;
         }
 
         obj.transform.parent = parent.transform;
-        obj.transform.localPosition = new Vector3(objDat.pos.x, objDat.pos.y);
-        sr.sortingOrder = -(int)(obj.transform.localPosition.y + parent.transform.localPosition.y); //upper objects should be drawn later        
-        if(objDat.objID == 2) { //set the levelMapForMob of big obstacles
+        obj.transform.localPosition = new Vector2(objDat.pos.x, objDat.pos.y);
+        obj.transform.position += new Vector3(0.0f, 0.0f, obj.transform.position.y); //upper objects should be drawn earlier
+        if (objDat.objID == 3) obj.transform.position = new Vector3(obj.transform.position.x, obj.transform.position.y, -1.0f); //vision blockers are in floor layer, so they so be drawn after normal floors
+        if (objDat.objID == 2) { //set the levelMapForMob of big obstacles
             int x = (int)obj.transform.position.x; int y = (int)obj.transform.position.y;
             Global.levelMapForMob[x][y] = true;
             Global.levelMapForMob[x + 1][y] = true;
             Global.levelMapForMob[x][y + 1] = true;
             Global.levelMapForMob[x + 1][y + 1] = true;
         }
-        if (objDat.objID == 3) sr.sortingOrder *= -1; //vision blockers are in floor layer, sor they need a higher order
     }
     private GameObject CreateWall(Vector2 pos, GameObject parent) {
         GameObject wall = Instantiate(prefabs[1]);
         //transform
         wall.transform.parent = parent.transform;
         wall.transform.localPosition = new Vector2(pos.x, pos.y);
-        //set up sprite renderer
-        SpriteRenderer sr = wall.GetComponent<SpriteRenderer>();
-        sr.sortingOrder = -(int)wall.transform.position.y; //upper objects should be drawn later
-        sr.sprite = levelData.wall;
+        wall.transform.position += new Vector3(0.0f, 0.0f, wall.transform.position.y); //upper objects should be drawn earlier
+        //set sprite
+        wall.GetComponent<SpriteRenderer>().sprite = levelData.wall;        
         //add the wall to the levelMapForMob
         Global.levelMapForMob[(int)(wall.transform.position.x)][(int)(wall.transform.position.y)] = true;
 
